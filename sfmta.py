@@ -1,15 +1,15 @@
-def lat_long(df, lat='LATITUDE', long='LONGITUDE'):
+def lat_long(df, lat='LATITUDE', long='LONGITUDE', time='TIMESTAMPLOCAL', cnn='CNN'):
     lat_long_list = []
 
     for _, row in df.iterrows():
-        lat_long_tuple = (row[lat], row[long])
+        lat_long_tuple = (row[lat], row[long], row[time], row[cnn])
         lat_long_list.append(lat_long_tuple)
 
     return lat_long_list
 
 def lat_long_by_plate(df, plate):
     cols = ['LOCATION_LATITUDE', 'LOCATION_LONGITUDE', 'TIMESTAMPLOCAL',
-                'LICENSE_PLATE_NUM', 'SHUTTLE_COMPANY']
+                'LICENSE_PLATE_NUM', 'SHUTTLE_COMPANY', 'CNN']
     
     search = df['LICENSE_PLATE_NUM'] == plate
     plate_df = df[search][cols]
