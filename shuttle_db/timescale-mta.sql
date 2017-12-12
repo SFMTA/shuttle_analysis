@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS providers (
   name VARCHAR(256)
 );
 
+DROP TABLE IF EXISTS shuttle_companies CASCADE;
+CREATE TABLE IF NOT EXISTS shuttle_companies (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(256)
+);
 
 DROP TABLE IF EXISTS shuttles CASCADE;
 CREATE TABLE IF NOT EXISTS shuttles (
@@ -22,16 +27,17 @@ CREATE TABLE IF NOT EXISTS shuttles (
   vehicle_weight VARCHAR(20),
   fuel_type VARCHAR(20),
   permit_issuance_date DATE,
-  placard_issuance_date DATE,
-  tech_provider_id INTEGER REFERENCES providers (id)
+  placard_issuance_date DATE
 );
 
 
 DROP TABLE IF EXISTS shuttle_locations CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_locations (
     shuttle_id INTEGER REFERENCES shuttles (id),
+    tech_provider_id INTEGER REFERENCES providers (id),
+    shuttle_company_id INTEGER REFERENCES shuttle_companies (id),
     local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    route GEOMETRY(LINESTRING),
+    location GEOMETRY(point),
     cnn INTEGER REFERENCES cnn (id)
 );
 
@@ -64,8 +70,8 @@ CREATE TABLE IF NOT EXISTS "cnn" (
 	st_type VARCHAR(20),
 	zip_code CHAR(5),
 	accepted BOOL,
-	jurisdicti VARCHAR(20),
-	nhood VARCHAR(20),
+	jurisdiction VARCHAR(20),
+	neighborhood VARCHAR(20),
 	layer VARCHAR(20),
 	cnntext VARCHAR(20),
 	streetname VARCHAR(20),
