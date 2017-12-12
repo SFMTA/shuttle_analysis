@@ -1,89 +1,97 @@
 CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
-DROP TABLE IF EXISTS "shuttles" CASCADE;
-CREATE TABLE IF NOT EXISTS "shuttles"(
-  ID integer primary key,
-  VEHICLE_MAKE varchar(20),
-  VEHICLE_MODEL varchar(20),
-  VEHICLE_YEAR varchar(20),
-  VEHICLE_STATUS varchar(20),
-  VEHICLE_CAPACITY varchar(20),
-  VEHICLE_LICENSE_PLATE varchar(20),
-  VEHICLE_LENGTH varchar(20),
-  VEHICLE_WEIGHT varchar(20),
-  FUEL_TYPE varchar(20),
-  PERMIT_ISSUANCE_DATE date,
-  PLACARD_ISSUANCE_DATE date,
-  TECH_PROVIDER varchar(20)
+
+DROP TABLE IF EXISTS providers CASCADE;
+CREATE TABLE IF NOT EXISTS providers (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(256)
+);
+
+
+DROP TABLE IF EXISTS shuttles CASCADE;
+CREATE TABLE IF NOT EXISTS shuttles (
+  id SERIAL PRIMARY KEY,
+  vehicle_make VARCHAR(20),
+  vehicle_model VARCHAR(20),
+  vehicle_year VARCHAR(20),
+  vehicle_status VARCHAR(20),
+  vehicle_capacity VARCHAR(20),
+  vehicle_license_plate VARCHAR(20),
+  vehicle_length VARCHAR(20),
+  vehicle_weight VARCHAR(20),
+  fuel_type VARCHAR(20),
+  permit_issuance_date DATE,
+  placard_issuance_date DATE,
+  tech_provider_id INTEGER REFERENCES providers (id)
 );
 
 
 DROP TABLE IF EXISTS shuttle_locations CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_locations (
-    SHUTTLE_ID INTEGER REFERENCES shuttles (ID),
-    LOCAL_TIMESTAMP TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    ROUTE geometry(LINESTRING),
-    CNN integer REFERENCES cnn ( ID )
+    shuttle_id INTEGER REFERENCES shuttles (id),
+    local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    route GEOMETRY(LINESTRING),
+    cnn INTEGER REFERENCES cnn (id)
 );
 
 
 DROP TABLE IF EXISTS shuttle_summary_facts CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_summary_facts (
-    CNN_EVENT_ID integer,
-    SHUTTLE_ID varchar(20),
-    LOCAL_TIMESTAMP TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    CNN integer,
-    STARTTIME TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    ENDTIME TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    NUM_POINTS integer
+    cnn_event_id INTEGER,
+    shuttle_id VARCHAR(20),
+    local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    cnn INTEGER,
+    starttime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    endtime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    num_points INTEGER
 );
 
-SELECT create_hypertable('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
+SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
 
-SELECT SHUTTLE_ID, CNN, COUNT(*)
+SELECT shuttle_id, cnn, COUNT(*)
 OVER (
- PARTITION BY SHUTTLE_ID
- ORDER BY shuttle_locations.LOCAL_TIMESTAMP
+ PARTITION BY shuttle_id
+ ORDER BY shuttle_locations.local_timestamp
 )
 FROM shuttle_locations
-WHERE LOCAL_TIMESTAMP < TIMESTAMP '2017/12/05 10:00:00';
+WHERE local_timestamp < TIMESTAMP '2017/12/05 10:00:00';
 
 DROP TABLE IF EXISTS cnn CASCADE;
 CREATE TABLE IF NOT EXISTS "cnn" (
-	ID integer PRIMARY KEY,
-	STREET varchar(20),
-	ST_TYPE varchar(20),
-	ZIP_CODE char(5),
-	ACCEPTED bool,
-	JURISDICTI varchar(20),
-	NHOOD varchar(20),
-	LAYER varchar(20),
-	CNNTEXT varchar(20),
-	STREETNAME varchar(20),
-	CLASSCODE varchar(20),
-	STREET_GC varchar(20),
-	STREETNA_1 varchar(20),
-	ONEWAY bool,
-	ST_LENGTH_ integer,
-  BLOCK_ADDRANGE varchar(20),
-  BLOCK_LOCATION varchar(20),
-  THEORDER varchar(20),
-  CORRIDOR varchar(20),
-	GEOM geometry(POLYGON)
+	id SERIAL PRIMARY KEY,
+	street VARCHAR(20),
+	st_type VARCHAR(20),
+	zip_code CHAR(5),
+	accepted BOOL,
+	jurisdicti VARCHAR(20),
+	nhood VARCHAR(20),
+	layer VARCHAR(20),
+	cnntext VARCHAR(20),
+	streetname VARCHAR(20),
+	classcode VARCHAR(20),
+	street_gc VARCHAR(20),
+	streetna_1 VARCHAR(20),
+	oneway BOOL,
+	st_length_ INTEGER,
+  block_addrange VARCHAR(20),
+  block_location VARCHAR(20),
+  theorder VARCHAR(20),
+  corridor VARCHAR(20),
+	geom GEOMETRY(POLYGON)
 );
 
 DROP TABLE IF EXISTS shuttle_stop_dim CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_stop_dim (
-	STOP_ID integer  primary key,
-	CNN integer,
-	STOP_LOCATION geometry(POINT),
-  REGISTRATION_EXPIRATION_DATE date
+	id SERIAL PRIMARY KEY,
+	cnn_id INTEGER REFERENCES cnn (id),
+	stop_location GEOMETRY(POINT),
+  registration_expiration_date DATE
 );
 
 DROP TABLE IF EXISTS day_info_dim CASCADE;
 CREATE TABLE IF NOT EXISTS day_info_dim (
-    date_key date primary key,
-    TRANSIT_HOLIDAY varchar(20),
-    WEEKDAY varchar(20)
+    date_key DATE PRIMARY KEY,
+    transit_holiday VARCHAR(20),
+    weekday VARCHAR(20)
 );
