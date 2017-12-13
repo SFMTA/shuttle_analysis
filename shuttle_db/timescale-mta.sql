@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS shuttle_locations (
     tech_provider_id INTEGER REFERENCES providers (id),
     shuttle_company_id INTEGER REFERENCES shuttle_companies (id),
     local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    location GEOMETRY(point),
+    location POINT,
     cnn INTEGER REFERENCES cnn (id)
 );
 

@@ -3,8 +3,8 @@ import psycopg2
 import time
 import os
 
-# CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
-CSV_FILENAME = 'C:\\Users\\traveler\\PycharmProjects\\shuttle_analysis\\fiftypoints.csv'
+CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
+# CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_analysis\\fiftypoints.csv'
 
 company_ids_by_name = {}
 provider_ids_by_name = {}
@@ -15,6 +15,16 @@ def _unicode_method(self):
     return "{}({})".format(
         self.__class__.__name__,
         ",".join("{}={}".format(k, v) for k, v in self.__dict__.items()))
+
+
+def gen_chunks(csv_reader, chunk_size=100):
+    chunk = []
+    for i, row in enumerate(csv_reader, start=1):
+        chunk.append(row)
+        if i % chunk_size == 0:
+            yield chunk
+            chunk = []
+    yield chunk
 
 
 class ShuttleCompany:
@@ -35,10 +45,11 @@ class ShuttleCompany:
                 raise RuntimeError("IDs must be None for bulk insert")
             inserts.append("('{}')".format(company.name))
         query = template.format(", ".join(inserts))
-        print("executing: {}".format(query))
         cursor.execute(query)
         ids_tuples = cursor.fetchall()
         ids = [t[0] for t in ids_tuples]
+        for id, company in zip(ids, companies):
+            company.id = id
         connection.commit()
         return ids
 
@@ -62,10 +73,11 @@ class TechProvider:
             inserts.append("('{}')".format(provider.name))
 
         query = template.format(", ".join(inserts))
-        print('executing: {}'.format(query))
         cursor.execute(query)
         ids_tuples = cursor.fetchall()
         ids = [t[0] for t in ids_tuples]
+        for id, provider in zip(ids, providers):
+            provider.id = id
         connection.commit()
         return ids
 
@@ -128,10 +140,11 @@ class Shuttle:
         for insert_tuple in insert_tuples:
             inserts.append("({})".format(", ".join("'{}'".format(f) if f is not None else "NULL" for f in insert_tuple)))
 
-        print(inserts)
         cursor.execute(template.format(", ".join(inserts)))
         results = cursor.fetchall()
         ids = [res[0] for res in results]
+        for id, shuttle in zip(ids, shuttles):
+            shuttle.id = id
         connection.commit()
         return ids
 
@@ -258,11 +271,27 @@ def get_all_new_shuttles(dict_reader):
     return shuttles
 
 
-def load_location_data(dict_reader):
-    for row in dict_reader:
+def load_location_data(connection, rows):
+    template = ('INSERT INTO shuttle_locations '
+                '(tech_provider_id, shuttle_company_id, shuttle_id, location, local_timestamp, cnn) '
+                'VALUES {} ')
+
+    insert_rows = []
+    for row in rows:
         provider_id = provider_ids_by_name[row['TECH_PROVIDER_NAME']]
         shuttle_company_id = company_ids_by_name[row['SHUTTLE_COMPANY']]
         shuttle_id = shuttle_ids_by_plate[row['VEHICLE_LICENSE_PLATE']]
+        local_timestamp = "to_timestamp('{}', 'dd-MON-YY HH12.MI.SS.US AM')".format(row['TIMESTAMPLOCAL'])
+        point = 'POINT({}, {})'.format(row['LOCATION_LONGITUDE'], row['LOCATION_LATITUDE'])
+        insert_row = '({}, {}, {}, {}, {}, NULL)'.format(provider_id, shuttle_company_id,
+                                                           shuttle_id, point, local_timestamp)
+        insert_rows.append(insert_row)
+
+    cursor = connection.cursor()
+    query = template.format(", ".join(insert_rows))
+    cursor.execute(query)
+    connection.commit()
+
 
 
 if __name__ == '__main__':
@@ -282,30 +311,35 @@ if __name__ == '__main__':
         print("Found {} tech providers in DB".format(len(provider_ids_by_name)))
         print("Loading new tech providers...")
         providers = get_all_new_tech_providers(csv.DictReader(f))
-        for provider in providers:
-            provider_ids_by_name[provider.name] = provider.id
         print("Found {} new tech providers".format(len(providers)))
         TechProvider.bulk_save(conn, providers)
+        for provider in providers:
+            provider_ids_by_name[provider.name] = provider.id
         print("Saved {} new tech providers".format(len(providers)))
 
         f.seek(0)
         initialize_shuttle_companies(conn)
         print("Found {} shuttle companies in DB".format(len(company_ids_by_name)))
         companies = get_all_new_shuttle_companies(csv.DictReader(f))
-        for company in companies:
-            company_ids_by_name[company.name] = company.id
         print("Found {} new shuttle companies".format(len(companies)))
         ShuttleCompany.bulk_save(conn, companies)
+        for company in companies:
+            company_ids_by_name[company.name] = company.id
         print("Saved {} new shuttle companies".format(len(companies)))
 
         f.seek(0)
         initialize_shuttles(conn)
         print("Found {} shuttles in DB".format(len(shuttle_ids_by_plate)))
         shuttles = get_all_new_shuttles(csv.DictReader(f))
-        print("Found {} shuttles".format(len(shuttles)))
+        print("Found {} new shuttles in data".format(len(shuttles)))
         Shuttle.bulk_save(conn, shuttles)
+        for shuttle in shuttles:
+            shuttle_ids_by_plate[shuttle.vehicle_license_plate] = shuttle.id
         print("Saved {} new shuttles".format(len(shuttles)))
 
         f.seek(0)
         print("Loading location data...")
-        load_location_data(csv.DictReader(f))
+        for chunk in gen_chunks(csv.DictReader(f)):
+            print("Saving {} rows.".format(len(chunk)))
+            load_location_data(conn, chunk)
+        print("Done loading location data.")
