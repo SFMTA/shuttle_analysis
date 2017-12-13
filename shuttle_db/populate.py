@@ -2,9 +2,10 @@ import argparse
 import csv
 import psycopg2
 import os
+import time
 
-# CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
-CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_analysis\\fiftypoints.csv'
+CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
+# CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_analysis\\fiftypoints.csv'
 CNN_DATA_FILENAME = 'C:\\Users\\traveler\\PycharmProjects\\shuttle_analysis\\cnn_dim.csv'
 
 saved_cnns = set()
@@ -173,7 +174,7 @@ class CNN:
         self.oneway = oneway
         self.st_length = st_length
         self.geometry = geometry
-        
+
 
     @staticmethod
     def bulk_save(conn, new_cnns):
@@ -347,8 +348,12 @@ def load_location_data(connection, rows):
         shuttle_id = shuttle_ids_by_plate[row['VEHICLE_LICENSE_PLATE']]
         local_timestamp = "to_timestamp('{}', 'dd-MON-YY HH12.MI.SS.US AM')".format(row['TIMESTAMPLOCAL'])
         point = 'POINT({}, {})'.format(row['LOCATION_LONGITUDE'], row['LOCATION_LATITUDE'])
-        insert_row = '({}, {}, {}, {}, {}, NULL)'.format(provider_id, shuttle_company_id,
-                                                         shuttle_id, point, local_timestamp)
+        cnn_raw = row['CNN']
+        cnn = int(cnn_raw) if cnn_raw else 'NULL'
+        if cnn not in saved_cnns:
+            cnn = 'NULL'
+        insert_row = '({}, {}, {}, {}, {}, {})'.format(provider_id, shuttle_company_id,
+                                                      shuttle_id, point, local_timestamp, cnn)
         insert_rows.append(insert_row)
 
     cursor = connection.cursor()
@@ -402,10 +407,11 @@ def populate_shuttle_data(db_connection):
 
         f.seek(0)
         print("Loading location data...")
+        start_time = time.time()
         for chunk in gen_chunks(csv.DictReader(f)):
             print("Saving {} rows.".format(len(chunk)))
             load_location_data(db_connection, chunk)
-        print("Done loading location data.")
+        print("Done loading location data. Took {:.1f}".format(time.time() - start_time))
 
 
 if __name__ == '__main__':
