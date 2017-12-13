@@ -30,6 +30,25 @@ CREATE TABLE IF NOT EXISTS shuttles (
   placard_issuance_date DATE
 );
 
+DROP TABLE IF EXISTS cnn CASCADE;
+CREATE TABLE IF NOT EXISTS "cnn" (
+  cnn INTEGER PRIMARY KEY,
+  street VARCHAR(256),
+  st_type VARCHAR(20),
+  zip_code CHAR(5),
+  accepted BOOL,
+  jurisdiction VARCHAR(20),
+  neighborhood VARCHAR(256),
+  layer VARCHAR(20),
+  cnntext VARCHAR(20),
+  streetname VARCHAR(256),
+  classcode VARCHAR(20),
+  street_gc VARCHAR(256),
+  streetna_1 VARCHAR(256),
+  oneway CHAR(1),
+  st_length INTEGER,
+  geom GEOMETRY(LINESTRING)
+);
 
 DROP TABLE IF EXISTS shuttle_locations CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_locations (
@@ -38,7 +57,7 @@ CREATE TABLE IF NOT EXISTS shuttle_locations (
     shuttle_company_id INTEGER REFERENCES shuttle_companies (id),
     local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     location POINT,
-    cnn INTEGER REFERENCES cnn (id)
+    cnn INTEGER REFERENCES cnn (cnn)
 );
 
 
@@ -63,34 +82,11 @@ OVER (
 FROM shuttle_locations
 WHERE local_timestamp < TIMESTAMP '2017/12/05 10:00:00';
 
-DROP TABLE IF EXISTS cnn CASCADE;
-CREATE TABLE IF NOT EXISTS "cnn" (
-	id SERIAL PRIMARY KEY,
-	street VARCHAR(20),
-	st_type VARCHAR(20),
-	zip_code CHAR(5),
-	accepted BOOL,
-	jurisdiction VARCHAR(20),
-	neighborhood VARCHAR(20),
-	layer VARCHAR(20),
-	cnntext VARCHAR(20),
-	streetname VARCHAR(20),
-	classcode VARCHAR(20),
-	street_gc VARCHAR(20),
-	streetna_1 VARCHAR(20),
-	oneway BOOL,
-	st_length_ INTEGER,
-  block_addrange VARCHAR(20),
-  block_location VARCHAR(20),
-  theorder VARCHAR(20),
-  corridor VARCHAR(20),
-	geom GEOMETRY(POLYGON)
-);
 
 DROP TABLE IF EXISTS shuttle_stop_dim CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_stop_dim (
 	id SERIAL PRIMARY KEY,
-	cnn_id INTEGER REFERENCES cnn (id),
+	cnn_id INTEGER REFERENCES cnn (cnn),
 	stop_location GEOMETRY(POINT),
   registration_expiration_date DATE
 );

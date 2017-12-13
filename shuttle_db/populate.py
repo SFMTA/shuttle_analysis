@@ -1,11 +1,14 @@
+import argparse
 import csv
 import psycopg2
-import time
 import os
+import time
 
 CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
 # CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_analysis\\fiftypoints.csv'
+CNN_DATA_FILENAME = 'C:\\Users\\traveler\\PycharmProjects\\shuttle_analysis\\cnn_dim.csv'
 
+saved_cnns = set()
 company_ids_by_name = {}
 provider_ids_by_name = {}
 shuttle_ids_by_plate = {}
@@ -152,26 +155,10 @@ class Shuttle:
 class CNN:
     __unicode__ = _unicode_method
 
-    def __init__(self,
-                 street,
-                 st_type,
-                 zip_code,
-                 accepted,
-                 jurisdiction,
-                 neighborhood,
-                 layer,
-                 cnntext,
-                 streetname,
-                 classcode,
-                 street_gc,
-                 streetna_1,
-                 oneway,
-                 st_length,
-                 block_addrange,
-                 block_location,
-                 theorder,
-                 corridor,
-                 geometry):
+    def __init__(self, cnn, street, st_type, zip_code, accepted, jurisdiction,
+                 neighborhood, layer, cnntext, streetname, classcode,
+                 street_gc, streetna_1, oneway, st_length, geometry):
+        self.cnn = cnn
         self.street = street
         self.st_type = st_type
         self.zip_code = zip_code
@@ -186,11 +173,60 @@ class CNN:
         self.streetna_1 = streetna_1
         self.oneway = oneway
         self.st_length = st_length
-        self.block_addrange = block_addrange
-        self.block_location = block_location
-        self.theorder = theorder
-        self.corridor = corridor
         self.geometry = geometry
+
+
+    @staticmethod
+    def bulk_save(conn, new_cnns):
+        if not new_cnns:
+            return
+        template = ('INSERT INTO cnn (cnn, street, st_type, zip_code, accepted, '
+                    'jurisdiction, neighborhood, layer, cnntext, streetname, '
+                    'classcode, street_gc, streetna_1, oneway, st_length, geom) '
+                    'VALUES {} RETURNING cnn')
+
+        insert_tuples = []
+        for cnn in new_cnns:
+            insert_tuples.append((
+                cnn.cnn,
+                cnn.street,
+                cnn.st_type,
+                cnn.zip_code,
+                cnn.accepted,
+                cnn.jurisdiction,
+                cnn.neighborhood,
+                cnn.layer,
+                cnn.cnntext,
+                cnn.streetname,
+                cnn.classcode,
+                cnn.street_gc,
+                cnn.streetna_1,
+                cnn.oneway,
+                cnn.st_length,
+                cnn.geometry
+            ))
+
+        inserts = []
+        for insert_tuple in insert_tuples:
+            inserts.append("({})".format(", ".join("'{}'".format(f) if f is not None else "NULL" for f in insert_tuple)))
+
+        cursor = conn.cursor()
+        cursor.execute(template.format(", ".join(inserts)))
+        results = cursor.fetchall()
+        cnns = [res[0] for res in results]
+        for cnn in cnns:
+            saved_cnns.add(cnn)
+        conn.commit()
+        return cnns
+
+
+def initialize_cnns(connection):
+    cursor = connection.cursor()
+    query = "SELECT cnn FROM cnn"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    for res in results:
+        saved_cnns.add(res)
 
 
 def initialize_tech_providers(connection):
@@ -271,6 +307,35 @@ def get_all_new_shuttles(dict_reader):
     return shuttles
 
 
+def get_all_new_cnns(dict_reader):
+    seen_cnns = set()
+    new_cnns = []
+    for row in dict_reader:
+        cnn = row['CNN']
+        if cnn not in saved_cnns and cnn not in seen_cnns:
+            cnn = CNN(
+                cnn=int(row['CNN']),
+                street=row['STREET'],
+                st_type=row['ST_TYPE'],
+                zip_code=row['ZIP_CODE'],
+                accepted=True if row['ACCEPTED'] == 'Y' else False,
+                jurisdiction=row['JURISDICTI'],
+                neighborhood=row['NHOOD'],
+                layer=row['LAYER'],
+                cnntext=str(row['CNNTEXT']),
+                streetname=row['STREETNAME'],
+                classcode=row['CLASSCODE'],
+                street_gc=row['STREET_GC'],
+                streetna_1=row['STREETNA_1'],
+                oneway=row['ONEWAY'],
+                st_length=row['ST_LENGTH_'],
+                geometry=row['GEOM']
+            )
+            new_cnns.append(cnn)
+
+    return new_cnns
+
+
 def load_location_data(connection, rows):
     template = ('INSERT INTO shuttle_locations '
                 '(tech_provider_id, shuttle_company_id, shuttle_id, location, local_timestamp, cnn) '
@@ -283,8 +348,12 @@ def load_location_data(connection, rows):
         shuttle_id = shuttle_ids_by_plate[row['VEHICLE_LICENSE_PLATE']]
         local_timestamp = "to_timestamp('{}', 'dd-MON-YY HH12.MI.SS.US AM')".format(row['TIMESTAMPLOCAL'])
         point = 'POINT({}, {})'.format(row['LOCATION_LONGITUDE'], row['LOCATION_LATITUDE'])
-        insert_row = '({}, {}, {}, {}, {}, NULL)'.format(provider_id, shuttle_company_id,
-                                                           shuttle_id, point, local_timestamp)
+        cnn_raw = row['CNN']
+        cnn = int(cnn_raw) if cnn_raw else 'NULL'
+        if cnn not in saved_cnns:
+            cnn = 'NULL'
+        insert_row = '({}, {}, {}, {}, {}, {})'.format(provider_id, shuttle_company_id,
+                                                      shuttle_id, point, local_timestamp, cnn)
         insert_rows.append(insert_row)
 
     cursor = connection.cursor()
@@ -293,8 +362,63 @@ def load_location_data(connection, rows):
     connection.commit()
 
 
+def populate_cnn_data(db_connection):
+    with open(CNN_DATA_FILENAME) as f:
+        initialize_cnns(conn)
+        print("Found {} CNNs in DB".format(len(saved_cnns)))
+        print("Loading new CNNs...")
+        new_cnns = get_all_new_cnns(csv.DictReader(f))
+        print("Found {} new CNNs".format(len(new_cnns)))
+        CNN.bulk_save(db_connection, new_cnns)
+
+
+def populate_shuttle_data(db_connection):
+
+    with open(CSV_FILENAME) as f:
+        initialize_tech_providers(db_connection)
+        print("Found {} tech providers in DB".format(len(provider_ids_by_name)))
+        print("Loading new tech providers...")
+        providers = get_all_new_tech_providers(csv.DictReader(f))
+        print("Found {} new tech providers".format(len(providers)))
+        TechProvider.bulk_save(db_connection, providers)
+        for provider in providers:
+            provider_ids_by_name[provider.name] = provider.id
+        print("Saved {} new tech providers".format(len(providers)))
+
+        f.seek(0)
+        initialize_shuttle_companies(db_connection)
+        print("Found {} shuttle companies in DB".format(len(company_ids_by_name)))
+        companies = get_all_new_shuttle_companies(csv.DictReader(f))
+        print("Found {} new shuttle companies".format(len(companies)))
+        ShuttleCompany.bulk_save(db_connection, companies)
+        for company in companies:
+            company_ids_by_name[company.name] = company.id
+        print("Saved {} new shuttle companies".format(len(companies)))
+
+        f.seek(0)
+        initialize_shuttles(db_connection)
+        print("Found {} shuttles in DB".format(len(shuttle_ids_by_plate)))
+        shuttles = get_all_new_shuttles(csv.DictReader(f))
+        print("Found {} new shuttles in data".format(len(shuttles)))
+        Shuttle.bulk_save(db_connection, shuttles)
+        for shuttle in shuttles:
+            shuttle_ids_by_plate[shuttle.vehicle_license_plate] = shuttle.id
+        print("Saved {} new shuttles".format(len(shuttles)))
+
+        f.seek(0)
+        print("Loading location data...")
+        start_time = time.time()
+        for chunk in gen_chunks(csv.DictReader(f)):
+            print("Saving {} rows.".format(len(chunk)))
+            load_location_data(db_connection, chunk)
+        print("Done loading location data. Took {:.1f}".format(time.time() - start_time))
+
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cnn', action='store_true')
+    parser.add_argument('--shuttles', action='store_true')
+    args = parser.parse_args()
     try:
         username = os.environ['SHUTTLE_DB_USER']
     except KeyError:
@@ -304,42 +428,14 @@ if __name__ == '__main__':
         password = os.environ['SHUTTLE_DB_PASSWORD']
     except KeyError:
         password = input('DB Password: ').strip()
+    conn = psycopg2.connect(host='localhost', user=username, password=password,
+                            database='shuttle_database')
+    if args.cnn:
+        populate_cnn_data(conn)
+    else:
+        print('Skipping CNN population')
+    if args.shuttles:
+        populate_shuttle_data(conn)
+    else:
+        print('Skipping shuttle population')
 
-    conn = psycopg2.connect(host='localhost', user=username, password=password, database='shuttle_database')
-    with open(CSV_FILENAME) as f:
-        initialize_tech_providers(conn)
-        print("Found {} tech providers in DB".format(len(provider_ids_by_name)))
-        print("Loading new tech providers...")
-        providers = get_all_new_tech_providers(csv.DictReader(f))
-        print("Found {} new tech providers".format(len(providers)))
-        TechProvider.bulk_save(conn, providers)
-        for provider in providers:
-            provider_ids_by_name[provider.name] = provider.id
-        print("Saved {} new tech providers".format(len(providers)))
-
-        f.seek(0)
-        initialize_shuttle_companies(conn)
-        print("Found {} shuttle companies in DB".format(len(company_ids_by_name)))
-        companies = get_all_new_shuttle_companies(csv.DictReader(f))
-        print("Found {} new shuttle companies".format(len(companies)))
-        ShuttleCompany.bulk_save(conn, companies)
-        for company in companies:
-            company_ids_by_name[company.name] = company.id
-        print("Saved {} new shuttle companies".format(len(companies)))
-
-        f.seek(0)
-        initialize_shuttles(conn)
-        print("Found {} shuttles in DB".format(len(shuttle_ids_by_plate)))
-        shuttles = get_all_new_shuttles(csv.DictReader(f))
-        print("Found {} new shuttles in data".format(len(shuttles)))
-        Shuttle.bulk_save(conn, shuttles)
-        for shuttle in shuttles:
-            shuttle_ids_by_plate[shuttle.vehicle_license_plate] = shuttle.id
-        print("Saved {} new shuttles".format(len(shuttles)))
-
-        f.seek(0)
-        print("Loading location data...")
-        for chunk in gen_chunks(csv.DictReader(f)):
-            print("Saving {} rows.".format(len(chunk)))
-            load_location_data(conn, chunk)
-        print("Done loading location data.")
