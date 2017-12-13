@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
+CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
 
 DROP TABLE IF EXISTS providers CASCADE;
@@ -71,7 +72,7 @@ CREATE TABLE IF NOT EXISTS shuttle_summary_facts (
     num_points INTEGER
 );
 
-/* SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE); */
+SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
 
 SELECT shuttle_id, cnn, COUNT(*)
 OVER (
