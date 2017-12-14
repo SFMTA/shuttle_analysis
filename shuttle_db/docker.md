@@ -26,7 +26,7 @@ This describes the steps to getting a docker image built and run that contains a
   C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/shuttle_three_days.csv .
   ```
 
-* Build docker image
+* Build docker image -- this will take a couple of minutes. This downloads all the packages needed for the docker image and packages all the datafiles into the image itself -- TODO: optimize
 
   ```
   C02RP8FEG8WP:shuttle_db aleung181$ docker build -t shuttledb .
