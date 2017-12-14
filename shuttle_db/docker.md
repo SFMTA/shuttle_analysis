@@ -68,13 +68,6 @@ This describes the steps to getting a docker image built and run that contains a
     postgres=# \c shuttle_database
     psql (10.1, server 9.6.6)
     You are now connected to database "shuttle_database" as user "postgres".
-    postgres=# select count(*) from shuttle_locations;
-    ERROR:  relation "shuttle_locations" does not exist
-    LINE 1: select count(*) from shuttle_locations;
-                                 ^
-    postgres=# \c shuttle_database
-    psql (10.1, server 9.6.6)
-    You are now connected to database "shuttle_database" as user "postgres".
     shuttle_database=# select count(*) from shuttle_locations;
       count  
     ---------
