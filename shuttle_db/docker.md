@@ -80,6 +80,6 @@ This describes the steps to getting a docker image built and run that contains a
    ```
    
  * Stop the container
- ```
- 02RP8FEG8WP:shuttle_db aleung181$ docker stop 1330b510e009
- ```
+   ```
+   C02RP8FEG8WP:shuttle_db aleung181$ docker stop 1330b510e009
+   ```
