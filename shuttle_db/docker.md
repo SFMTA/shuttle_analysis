@@ -4,7 +4,7 @@ This describes the steps to getting a docker image built and run that contains a
 
 ## Steps
 
-* Stop local instances of postgres (if necessary)
+* Stop local instances of postgres (if necessary); e.g. on MacOS:
   ```
   C02RP8FEG8WP:shuttle_db aleung181$ brew services stop postgresql
   ```
