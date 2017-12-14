@@ -1,14 +1,16 @@
 #!/bin/bash
 set -e
 
-IMAGE_NAME=timescale/timescaledb-postgis
+#IMAGE_NAME=timescale/timescaledb-postgis
+IMAGE_NAME=shuttledb
 if [[ -z "$IMAGE_NAME" ]]; then
   echo "The IMAGE_NAME must be set"
   exit 1
 fi
 
 DOCKER_HOST=${DOCKER_HOST:-localhost}
-CONTAINER_NAME=${CONTAINER_NAME:-timescaledb-postgis}
+CONTAINER_NAME=${CONTAINER_NAME:-timescaledb-postgis1}
+#CONTAINER_NAME=${CONTAINER_NAME:-shuttledb}
 DATA_DIR=${DATA_DIR-$PWD/data}
 BIN_CMD=${BIN_CMD:-postgres}
 PGPORT=${PGPORT:=5432}

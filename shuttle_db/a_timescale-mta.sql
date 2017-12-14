@@ -1,3 +1,7 @@
+CREATE DATABASE shuttle_database;
+SELECT current_database();
+\c shuttle_database;
+SELECT current_database();
 CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
