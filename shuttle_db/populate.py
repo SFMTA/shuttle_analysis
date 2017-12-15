@@ -4,8 +4,8 @@ import psycopg2
 import os
 import time
 
-CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
-# CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_analysis\\fiftypoints.csv'
+#CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
+CSV_FILENAME = 'shuttle_three_days.csv'
 CNN_DATA_FILENAME = 'C:\\Users\\traveler\\PycharmProjects\\shuttle_analysis\\cnn_dim.csv'
 
 saved_cnns = set()
@@ -416,19 +416,23 @@ def populate_shuttle_data(db_connection):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--ip', default='localhost')
     parser.add_argument('--cnn', action='store_true')
     parser.add_argument('--shuttles', action='store_true')
     args = parser.parse_args()
-    try:
-        username = os.environ['SHUTTLE_DB_USER']
-    except KeyError:
-        username = input('DB Username: ').strip()
+    #try:
+    #    username = os.environ['SHUTTLE_DB_USER']
+    #except KeyError:
+    #    username = input('DB Username: ').strip()
+    username = "postgres"
 
-    try:
-        password = os.environ['SHUTTLE_DB_PASSWORD']
-    except KeyError:
-        password = input('DB Password: ').strip()
-    conn = psycopg2.connect(host='localhost', user=username, password=password,
+    #try:
+    #    password = os.environ['SHUTTLE_DB_PASSWORD']
+    #except KeyError:
+    #    password = input('DB Password: ').strip()
+    password=""
+    #conn = psycopg2.connect(host='localhost', user=username, password=password,
+    conn = psycopg2.connect(host=args.ip, user=username, password=password,
                             database='shuttle_database')
     if args.cnn:
         populate_cnn_data(conn)
