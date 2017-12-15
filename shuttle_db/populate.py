@@ -4,9 +4,8 @@ import psycopg2
 import os
 import time
 
-#CSV_FILENAME = 'C:\\Users\\traveler\\Downloads\\shuttle_three_days.csv'
 CSV_FILENAME = 'shuttle_three_days.csv'
-CNN_DATA_FILENAME = 'C:\\Users\\traveler\\PycharmProjects\\shuttle_analysis\\cnn_dim.csv'
+CNN_DATA_FILENAME = 'cnn_dim.csv'
 
 saved_cnns = set()
 company_ids_by_name = {}
