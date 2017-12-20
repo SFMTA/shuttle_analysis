@@ -10,12 +10,11 @@ This describes the steps to getting a docker image built and run that contains a
   ```
   
 * Install Docker and run it
-* clone shuttle_analysis, check out branch 'alex':
+* clone shuttle_analysis:
 
   ```
   C02RP8FEG8WP:sfmta aleung181$ git clone https://github.com/SFMTA/shuttle_analysis.git
   C02RP8FEG8WP:sfmta aleung181$ cd shuttle_analysis
-  C02RP8FEG8WP:sfmta aleung181$ git checkout alex
   ```
 
 * copy .csv data files to the shuttle_db directory (where the Dockerfile is). 
@@ -30,6 +29,7 @@ This describes the steps to getting a docker image built and run that contains a
 * Build docker image -- this will take a couple of minutes. This downloads all the packages needed for the docker image and packages all the datafiles into the image itself -- TODO: optimize
 
   ```
+  C02RP8FEG8WP:shuttle_analysis aleung181$ cd shuttle_db
   C02RP8FEG8WP:shuttle_db aleung181$ docker build -t shuttledb .
   <SNIP>
   Removing intermediate container 3cea1173913d
