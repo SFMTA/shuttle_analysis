@@ -16,14 +16,8 @@ setup(name='sfmta',
       extras_require={
       },
       packages=[
-          'bql',
-          'bql.request',
-          'bql.om',
-          'bql.metadata',
-          'bql.metadata.sqlite',
-          'bql.metadata.sqlite.process_monitor',
-          'bql.metadata.sqlite.file_monitor',
-          'bql.util',
+          'application',
+          'sql_queries',
       ],
       package_data={},
       classifiers=[
