@@ -21,6 +21,7 @@ ADD z_pg_cron.sql .
 # Set the database environment var
 #ENV PGDATABASE shuttle_database
 
+ADD ./requirements.txt .
 # add python3
 #RUN apt-get update && apt-get install -y python3
 RUN apk add --no-cache --virtual .fetch-deps \
@@ -54,6 +55,14 @@ RUN pip3 install --trusted-host pypi.python.org -r requirements.txt
 RUN cd pg_cron && \
 	make && sudo make install
 
+# Copy the current directory contents into the container at /app
+ADD . .
+
+# scripts in the docker-entrypoint-initdb.d/ directory will
+# be run in alphabetical order
+# will create tables upon container start up
+ADD a_timescale-mta.sql /docker-entrypoint-initdb.d/
+ADD populate.sh /docker-entrypoint-initdb.d/
 # Expose the PostgreSQL port
 EXPOSE 5432
 
