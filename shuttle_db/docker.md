@@ -17,16 +17,7 @@ This describes the steps to getting a docker image built and run that contains a
   C02RP8FEG8WP:sfmta aleung181$ cd shuttle_analysis
   ```
 
-* copy .csv data files to the shuttle_db directory (where the Dockerfile is). 
-
-  > note the name of the csv files
-
-  ```
-  C02RP8FEG8WP:shuttle_analysis aleung181$ cp ~/Downloads/cnn_dim.csv shuttle_db/cnn_dim.csv
-  C02RP8FEG8WP:shuttle_analysis aleung181$ cp ~/Downloads/shuttle_three_days.csv shuttle_db/shuttle_three_days.csv
-  ```
-
-* Build docker image -- this will take a couple of minutes. This downloads all the packages needed for the docker image and packages all the datafiles into the image itself -- TODO: optimize
+* Build docker image -- this will take a couple of minutes. This downloads all the packages needed for the docker image and packages all the datafiles into the image itself 
 
   ```
   C02RP8FEG8WP:shuttle_analysis aleung181$ cd shuttle_db
@@ -37,10 +28,20 @@ This describes the steps to getting a docker image built and run that contains a
   Successfully tagged shuttledb:latest
   ```
 
-* Run container; this will return almost immediately, but includes starting up postgres and loading all of the shuttles and cnn data, which will take around 10 minutes. During this time, postgres (e.g. psql) will not be available
+* create a 'data' directory in the same directory where docker-run.sh is and add the shuttle and cnn .csv data files into the data directory:
+
+  > note the name of the csv files
 
   ```
-  C02RP8FEG8WP:shuttle_db aleung181$ docker run -d -p 5432:5432 shuttledb
+  C02RP8FEG8WP:shuttle_db aleung181$ mkdir data
+  C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/cnn_dim.csv data/cnn_dim.csv
+  C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/shuttle_three_days.csv data/shuttle_three_days.csv
+  ```
+  
+* Run container
+
+  ```
+  C02RP8FEG8WP:shuttle_db aleung181$ ./docker-run.sh
   1330b510e009fb47e3d32f4bd87b05a67e2f629958607cfdb475c079e6bf3447
   ```
   
@@ -54,17 +55,40 @@ This describes the steps to getting a docker image built and run that contains a
   
   > note that '1330b510e009" is the container id that can be used later to 'docker exec' commands or stop the container
 
-  * As mentioned above, psql will not be not ready while 
-    ```
-    C02RP8FEG8WP:shuttle_db aleung181$ psql -U postgres -h localhost 
-    psql: server closed the connection unexpectedly
-      This probably means the server terminated abnormally
-      before or while processing the request.
-    ```
- * Once the data load has completed, use psql to perform queries
+* Load shuttle and CNN data from .csv files into database
  
-   ```
-   C02RP8FEG8WP:shuttle_db aleung181$ psql -U postgres -h localhost 
+  * First get a bash shell into the container
+  ```
+  C02RP8FEG8WP:shuttle_db aleung181$ docker exec -i -t 1330b510e009 /bin/bash
+  bash-4.3# ls /tmp/
+  cnn_dim.csv             shuttle_three_days.csv       
+  ```
+  
+  > Note that the /tmp directory is bound to the ./data directory that was created above. Any changes to ./data will be seen by the container in /tmp
+  
+  * Now populate CNN and shuttle data from the csv files in /tmp
+  
+  ```
+  bash-4.3# python3 populate.py --cnn --cnn_csv /tmp/cnn_dim.csv 
+  Found 0 CNNs in DB
+  Loading new CNNs...
+  Found 16187 new CNNs
+  Skipping shuttle population
+  bash-4.3# python3 populate.py --cnn --cnn_csv /tmp/
+  cnn_dim.csv             shuttle_three_days.csv  timescaledb/            
+  bash-4.3# python3 populate.py --shuttles --shuttle_csv /tmp/shuttle_three_days.csv 
+  Skipping CNN population
+  Found 0 tech providers in DB
+  Loading new tech providers...
+  Found 8 new tech providers
+  Saved 8 new tech providers
+  ...
+  ```
+
+* Once the data load has completed, use psql to perform queries
+ 
+  ```
+  C02RP8FEG8WP:shuttle_db aleung181$ psql -U postgres -h localhost 
     psql (10.1, server 9.6.6)
     Type "help" for help.
 
@@ -79,7 +103,7 @@ This describes the steps to getting a docker image built and run that contains a
 
    ```
    
- * Stop the container
+* Stop the container
    ```
    C02RP8FEG8WP:shuttle_db aleung181$ docker stop 1330b510e009
    ```
