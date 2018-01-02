@@ -57,14 +57,12 @@ This describes the steps to getting a docker image built and run that contains a
 
 * Load shuttle and CNN data from .csv files into database
  
-  * First get a bash shell into the container
+  * First get a bash shell into the container; Note that the /tmp directory is bound to the ./data directory that was created above. Any changes to ./data will be seen by the container in /tmp
   ```
   C02RP8FEG8WP:shuttle_db aleung181$ docker exec -i -t 1330b510e009 /bin/bash
   bash-4.3# ls /tmp/
   cnn_dim.csv             shuttle_three_days.csv       
   ```
-  
-  > Note that the /tmp directory is bound to the ./data directory that was created above. Any changes to ./data will be seen by the container in /tmp
   
   * Now populate CNN and shuttle data from the csv files in /tmp
   
