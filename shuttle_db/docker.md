@@ -86,9 +86,9 @@ This describes the steps to getting a docker image built and run that contains a
   ```
 
 * Install postgres (if not already installed); needed for running 'psql' below
-```
-C02RP8FEG8WP:shuttle_db aleung181$ brew install postgresql
-```
+  ```
+  C02RP8FEG8WP:shuttle_db aleung181$ brew install postgresql
+  ```
 
 * Once the data load has completed, use the 'psql' command to perform queries
  
