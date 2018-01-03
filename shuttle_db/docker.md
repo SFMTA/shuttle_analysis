@@ -33,7 +33,7 @@ This describes the steps to getting a docker image built and run that contains a
   C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/shuttle_three_days.csv data/shuttle_three_days.csv
   ```
   
-* Stop local instances of postgres (if necessary). This is only necessary if postgres happens to have been installed locally. If if has, we want to make sure that when we connect to postgres using 'psql' we're connecting to the instance in the docker container, not the local instance.
+* Stop local instances of postgres (if necessary). We want to make sure that when we connect to postgres using 'psql' we're connecting to the instance in the docker container, not the local instance.
 
   e.g. on MacOS:
   ```
@@ -85,7 +85,12 @@ This describes the steps to getting a docker image built and run that contains a
   ...
   ```
 
-* Once the data load has completed, use psql to perform queries
+* Install postgres (if not already installed); needed for running 'psql' below
+```
+C02RP8FEG8WP:shuttle_db aleung181$ brew install postgresql
+```
+
+* Once the data load has completed, use the 'psql' command to perform queries
  
   ```
   C02RP8FEG8WP:shuttle_db aleung181$ psql -U postgres -h localhost 
