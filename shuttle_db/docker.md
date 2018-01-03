@@ -4,11 +4,6 @@ This describes the steps to getting a docker image built and run that contains a
 
 ## Steps
 
-* Stop local instances of postgres (if necessary); e.g. on MacOS:
-  ```
-  C02RP8FEG8WP:shuttle_db aleung181$ brew services stop postgresql
-  ```
-  
 * Install Docker and run it
 * clone shuttle_analysis:
 
@@ -36,6 +31,13 @@ This describes the steps to getting a docker image built and run that contains a
   C02RP8FEG8WP:shuttle_db aleung181$ mkdir data
   C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/cnn_dim.csv data/cnn_dim.csv
   C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/shuttle_three_days.csv data/shuttle_three_days.csv
+  ```
+  
+* Stop local instances of postgres (if necessary). This is only necessary if postgres happens to have been installed locally. If if has, we want to make sure that when we connect to postgres using 'psql' we're connecting to the instance in the docker container, not the local instance.
+
+  e.g. on MacOS:
+  ```
+  C02RP8FEG8WP:shuttle_db aleung181$ brew services stop postgresql
   ```
   
 * Run container
