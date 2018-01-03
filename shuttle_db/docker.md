@@ -4,6 +4,11 @@ This describes the steps to getting a docker image built and run that contains a
 
 ## Steps
 
+* Install postgres (if not already installed)
+```
+C02RP8FEG8WP:shuttle_db aleung181$ brew install postgresql
+```
+
 * Stop local instances of postgres (if necessary); e.g. on MacOS:
   ```
   C02RP8FEG8WP:shuttle_db aleung181$ brew services stop postgresql
