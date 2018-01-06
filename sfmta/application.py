@@ -3,7 +3,7 @@ import psycopg2
 import json
 import pandas as pd
 from ipywidgets import Dropdown, HBox, VBox, Button, DatePicker, ColorPicker, IntSlider
-from ipyleaflet import Map, Polyline, GeoJSON, Circle
+from ipyleaflet import Map, Polyline, GeoJSON, Circle, basemaps
 import datetime
 import sfmta
 
@@ -79,7 +79,7 @@ def main(conn):
     def draw_map(lat_longs):
         center = [37.79481, -122.41186]
         zoom = 12
-        m = Map(center=center, zoom=zoom)
+        m = Map(center=center, zoom=zoom, basemap=basemaps.Hydda.Full)
         m.layout.height = '650px'
         pl = Polyline(locations=lat_longs)
         pl.color = path_color.value
