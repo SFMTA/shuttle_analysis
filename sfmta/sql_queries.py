@@ -18,6 +18,8 @@ def db_connect():
                             user=username, 
                             password=password, 
                             database='shuttle_database')
+
+    print('Connection Created')
     return conn
 
 def get_all_shuttles(connection):
