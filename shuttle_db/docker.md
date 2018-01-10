@@ -12,7 +12,7 @@ This describes the steps to getting a docker image built and run that contains a
   C02RP8FEG8WP:sfmta aleung181$ cd shuttle_analysis
   ```
 
-* Build docker image -- this will take a couple of minutes. This downloads all the packages needed for the docker image and packages all the datafiles into the image itself 
+* Build docker image -- this will take a couple of minutes. This downloads all the packages needed for the docker image.
 
   ```
   C02RP8FEG8WP:shuttle_analysis aleung181$ cd shuttle_db
@@ -23,12 +23,11 @@ This describes the steps to getting a docker image built and run that contains a
   Successfully tagged shuttledb:latest
   ```
 
-* create a 'data' directory in the same directory where docker-run.sh is and add the shuttle and cnn .csv data files into the data directory:
+* add the shuttle and cnn .csv data files into the 'data' directory:
 
   > note the name of the csv files
 
   ```
-  C02RP8FEG8WP:shuttle_db aleung181$ mkdir data
   C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/cnn_dim.csv data/cnn_dim.csv
   C02RP8FEG8WP:shuttle_db aleung181$ cp ~/Downloads/shuttle_three_days.csv data/shuttle_three_days.csv
   ```
