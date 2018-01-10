@@ -74,8 +74,6 @@ This describes the steps to getting a docker image built and run that contains a
   Loading new CNNs...
   Found 16187 new CNNs
   Skipping shuttle population
-  bash-4.3# python3 populate.py --cnn --cnn_csv /tmp/
-  cnn_dim.csv             shuttle_three_days.csv  timescaledb/            
   bash-4.3# python3 populate.py --shuttles --shuttle_csv /tmp/shuttle_three_days.csv 
   Skipping CNN population
   Found 0 tech providers in DB
