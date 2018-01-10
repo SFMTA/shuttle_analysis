@@ -4,9 +4,6 @@ import psycopg2
 import os
 import time
 
-CSV_FILENAME = 'shuttle_three_days.csv'
-CNN_DATA_FILENAME = 'cnn_dim.csv'
-
 saved_cnns = set()
 company_ids_by_name = {}
 provider_ids_by_name = {}
@@ -361,8 +358,8 @@ def load_location_data(connection, rows):
     connection.commit()
 
 
-def populate_cnn_data(db_connection):
-    with open(CNN_DATA_FILENAME) as f:
+def populate_cnn_data(db_connection, csv_file):
+    with open(csv_file) as f:
         initialize_cnns(conn)
         print("Found {} CNNs in DB".format(len(saved_cnns)))
         print("Loading new CNNs...")
@@ -371,9 +368,9 @@ def populate_cnn_data(db_connection):
         CNN.bulk_save(db_connection, new_cnns)
 
 
-def populate_shuttle_data(db_connection):
+def populate_shuttle_data(db_connection, csv_file):
 
-    with open(CSV_FILENAME) as f:
+    with open(csv_file) as f:
         initialize_tech_providers(db_connection)
         print("Found {} tech providers in DB".format(len(provider_ids_by_name)))
         print("Loading new tech providers...")
@@ -415,6 +412,9 @@ def populate_shuttle_data(db_connection):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--shuttle_csv', default='/tmp/shuttle_three_days.csv')
+    parser.add_argument('--cnn_csv', default='/tmp/cnn_dim.csv')
     parser.add_argument('--ip', default='localhost')
     parser.add_argument('--cnn', action='store_true')
     parser.add_argument('--shuttles', action='store_true')
@@ -434,11 +434,11 @@ if __name__ == '__main__':
     conn = psycopg2.connect(host=args.ip, user=username, password=password,
                             database='shuttle_database')
     if args.cnn:
-        populate_cnn_data(conn)
+        populate_cnn_data(conn, args.cnn_csv)
     else:
         print('Skipping CNN population')
     if args.shuttles:
-        populate_shuttle_data(conn)
+        populate_shuttle_data(conn, args.shuttle_csv)
     else:
         print('Skipping shuttle population')
 
