@@ -2,11 +2,11 @@
 set -e
 
 #IMAGE_NAME=timescale/timescaledb-postgis
-IMAGE_NAME=shuttledb
-if [[ -z "$IMAGE_NAME" ]]; then
-  echo "The IMAGE_NAME must be set"
-  exit 1
-fi
+#IMAGE_NAME=shuttledb
+#if [[ -z "$IMAGE_NAME" ]]; then
+#  echo "The IMAGE_NAME must be set"
+#  exit 1
+#fi
 
 DOCKER_HOST=${DOCKER_HOST:-localhost}
 CONTAINER_NAME=${CONTAINER_NAME:-timescaledb-postgis1}
