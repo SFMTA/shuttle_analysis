@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS "cnn" (
   geom GEOMETRY(LINESTRING)
 );
 
+
+
 DROP TABLE IF EXISTS shuttle_locations CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_locations (
     shuttle_id INTEGER REFERENCES shuttles (id),
@@ -72,8 +74,8 @@ CREATE TABLE IF NOT EXISTS shuttle_summary_facts (
     shuttle_id VARCHAR(20),
     local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     cnn INTEGER,
-    starttime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    endtime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    start_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     num_points INTEGER
 );
 
@@ -102,3 +104,161 @@ CREATE TABLE IF NOT EXISTS day_info_dim (
     transit_holiday VARCHAR(20),
     weekday VARCHAR(20)
 );
+
+
+
+
+
+
+
+
+CREATE TABLE IF NOT EXISTS shuttle_locations (
+    shuttle_id INTEGER REFERENCES shuttles (id),
+    tech_provider_id INTEGER REFERENCES providers (id),
+    shuttle_company_id INTEGER REFERENCES shuttle_companies (id),
+    local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    location POINT,
+    cnn INTEGER REFERENCES cnn (cnn)
+);
+
+
+-- determines whether two TIMESTAMPs are within 15 minutes of eachother
+CREATE OR REPLACE FUNCTION withinFifteenMinutes(local_timestamp TIMESTAMP, last_timestamp TIMESTAMP)
+RETURNS boolean
+    AS $$
+
+    SELECT local_timestamp  < last_timestamp + 15 * interval '1 minute'
+
+    $$
+    LANGUAGE SQL
+    IMMUTABLE
+    PARALLEL SAFE
+    RETURNS NULL ON NULL INPUT;
+
+
+-- This function determines whether a point is a "new start". If there has been another point <15 minutes before,
+-- it's still part of the same aggregation
+CREATE OR REPLACE FUNCTION findNewStart(local_timestamp TIMESTAMP, last_timestamp TIMESTAMP )
+RETURNS timestamp without time zone
+    AS $$
+
+    SELECT
+        CASE
+            WHEN last_timestamp IS NULL THEN local_timestamp
+            ELSE
+                CASE
+                    WHEN NOT withinFifteenMinutes(local_timestamp, last_timestamp) THEN local_timestamp
+                    ELSE NULL
+            END
+        END
+    AS new_start
+
+    $$
+    LANGUAGE SQL
+    IMMUTABLE;
+
+-- this windowing function creates a column in each value that shows the last known point for that shuttle
+-- sorted by timestamp
+CREATE OR REPLACE FUNCTION windowByTimeStamps(start_time TIMESTAMP, end_time TIMESTAMP)
+RETURNS TABLE( shuttle_id INTEGER ,
+    tech_provider_id INTEGER ,
+    shuttle_company_id INTEGER ,
+    local_timestamp TIMESTAMP WITHOUT TIME ZONE,
+    location POINT,
+    cnn INTEGER ,
+    last_timestamp timestamp without time zone)
+    AS $$
+
+    SELECT shuttle_locations.*, lag(local_timestamp) OVER (PARTITION BY shuttle_id ORDER BY local_timestamp) AS last_timestamp
+    FROM shuttle_locations
+    WHERE start_time < local_timestamp AND end_time > local_timestamp
+
+    $$
+    LANGUAGE SQL
+    IMMUTABLE
+    RETURNS NULL ON NULL INPUT;
+
+
+-- determines the start times for each CNN "session". A session is a period of time in a CNN that is
+-- < 15 minutes before the last time it was on that CNN
+CREATE OR REPLACE FUNCTION groupCNNEvents(start_time TIMESTAMP, end_time TIMESTAMP)
+RETURNS TABLE(
+    shuttle_id INTEGER ,
+    tech_provider_id INTEGER ,
+    shuttle_company_id INTEGER ,
+    local_timestamp TIMESTAMP WITHOUT TIME ZONE,
+    location POINT,
+    cnn INTEGER ,
+    last_timestamp timestamp without time zone,
+    start_time TIMESTAMP WITHOUT TIME ZONE
+    )
+    AS $$
+
+    SELECT *, MAX(findNewStart(local_timestamp, last_timestamp)) OVER (PARTITION BY shuttle_id ORDER BY local_timestamp) as start_time
+    FROM (
+        SELECT * FROM windowByTimeStamps(start_time, end_time) s1
+    ) s2
+
+    $$
+    LANGUAGE SQL
+    IMMUTABLE
+    RETURNS NULL ON NULL INPUT;
+
+
+
+
+CREATE OR REPLACE FUNCTION cnnAggregation(s_time TIMESTAMP, e_time TIMESTAMP)
+RETURNS TABLE(
+    shuttle_id INTEGER ,
+    tech_provider_id INTEGER ,
+    shuttle_company_id INTEGER ,
+    start_time TIMESTAMP WITHOUT TIME ZONE,
+    end_time TIMESTAMP WITHOUT TIME ZONE,
+    num_datapoints bigint
+    )
+     AS $$
+
+    SELECT shuttle_id,
+       tech_provider_id,
+       shuttle_company_id,
+       start_time,
+       max(local_timestamp)  as end_time ,
+       COUNT(*) AS num_datapoints
+    FROM (
+        SELECT * FROM groupCNNEvents(s_time, e_time )
+    ) s1
+    GROUP BY (shuttle_id, tech_provider_id, shuttle_company_id,  start_time)
+    ORDER BY shuttle_id, start_time;
+
+    $$
+      LANGUAGE SQL
+    IMMUTABLE
+    RETURNS NULL ON NULL INPUT;
+
+
+CREATE OR REPLACE FUNCTION hourlyFunction(s_time TIMESTAMP, e_time TIMESTAMP)
+RETURNS VOID
+    AS $$
+    INSERT INTO shuttle_summary_facts (SELECT * FROM cnnAggregation(s_time, e_time))
+    $$
+    LANGUAGE SQL
+    IMMUTABLE
+    RETURNS NULL ON NULL INPUT;
+
+
+
+--CREATE FUNCTION aggregate_hour(TIMESTAMP, TIMESTAMP) RETURNS integer as $$
+--
+--BEGIN
+--   SELECT count(*) into total FROM shuttle_locations;
+--   RETURN total;
+--END;
+
+CREATE OR REPLACE FUNCTION findCNNGroup(start_time TIMESTAMP WITHOUT TIME ZONE,, end_time TIMESTAMP WITHOUT TIME ZONE,)
+RETURNS TIMESTAMP WITHOUT TIME ZONE,
+    AS $$ SELECT MAX(findNewStart(local_timestamp, last_timestamp)) OVER (PARTITION BY shuttle_id ORDER BY local_timestamp) as start_time
+      FROM (SELECT * FROM windowByTimeStamps(start_time, end_time) s1 ) s2
+      $$
+    LANGUAGE SQL
+    IMMUTABLE
+    RETURNS NULL ON NULL INPUT;
