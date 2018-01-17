@@ -64,7 +64,17 @@ This describes the steps to getting a docker image built and run that contains a
   bash-4.3# ls /tmp/
   cnn_dim.csv             shuttle_three_days.csv       
   ```
-  
+
+  * To populate the database with CNN polygon data, use the following command:
+  ```
+  $ shp2pgsql path/to/shapefile.shp | psql -d $DATABASE_NAME -U $DATABASE_USER -h $DATABASE HOST
+
+  ```
+  * The table of CNN polygons will have the same name as the shapefile that was used.
+  * $DATABASE_NAME is the name of the shuttle analysis database
+  * $DATABASE_HOST is the host where postgresql is running
+  * $DATABASE_USER is the user name for accessing the postgres database
+  * This command will prompt for the password of the user used to populate the database.
   * Now populate CNN and shuttle data from the csv files in /tmp
   
   ```
