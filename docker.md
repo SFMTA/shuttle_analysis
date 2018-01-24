@@ -26,23 +26,23 @@ This describes the steps to getting a docker image built and run that contains a
 * Run container
 
  ```
-  C02RP8FEG8WP:shuttle_analysis aleung181$ ./docker-run.sh 
-  Executing the command: jupyter notebook
-  [I 00:08:49.347 NotebookApp] Writing notebook server cookie secret to /home/jovyan/.local/share/jupyter/runtime/notebook_cookie_secret
-  [W 00:08:49.755 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
-  [I 00:08:49.788 NotebookApp] JupyterLab alpha preview extension loaded from /opt/conda/lib/python3.6/site-packages/jupyterlab
-  [I 00:08:49.788 NotebookApp] JupyterLab application directory is /opt/conda/share/jupyter/lab
-  [I 00:08:49.795 NotebookApp] Serving notebooks from local directory: /home/jovyan
-  [I 00:08:49.795 NotebookApp] 0 active kernels
-  [I 00:08:49.796 NotebookApp] The Jupyter Notebook is running at:
-  [I 00:08:49.796 NotebookApp] http://[all ip addresses on your system]:8888/?token=87b8ed25bf9985a8d94200bf9363fa6cf1165125c6fbfabb
-  [I 00:08:49.796 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
-  [C 00:08:49.797 NotebookApp] 
+ C02RP8FEG8WP:shuttle_analysis aleung181$ ./docker-run.sh 
+ Executing the command: jupyter notebook
+ [I 00:08:49.347 NotebookApp] Writing notebook server cookie secret to /home/jovyan/.local/share/jupyter/runtime/notebook_cookie_secret
+ [W 00:08:49.755 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
+ [I 00:08:49.788 NotebookApp] JupyterLab alpha preview extension loaded from /opt/conda/lib/python3.6/site-packages/jupyterlab
+ [I 00:08:49.788 NotebookApp] JupyterLab application directory is /opt/conda/share/jupyter/lab
+ [I 00:08:49.795 NotebookApp] Serving notebooks from local directory: /home/jovyan
+ [I 00:08:49.795 NotebookApp] 0 active kernels
+ [I 00:08:49.796 NotebookApp] The Jupyter Notebook is running at:
+ [I 00:08:49.796 NotebookApp] http://[all ip addresses on your system]:8888/?token=87b8ed25bf9985a8d94200bf9363fa6cf1165125c6fbfabb
+ [I 00:08:49.796 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+ [C 00:08:49.797 NotebookApp] 
     
     Copy/paste this URL into your browser when you connect for the first time,
     to login with a token:
         http://localhost:8888/?token=87b8ed25bf9985a8d94200bf9363fa6cf1165125c6fbfabb
-  ```
+ ```
   
 * Get IP address of where the Postgres Database resides and update Jupyter notebook to connect to this IP Address
 
