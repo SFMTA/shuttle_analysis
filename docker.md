@@ -57,13 +57,23 @@ This describes the steps to getting a docker image built and run that contains a
                     "IPAddress": "172.17.0.3",
   ```   
   
-  Then modify the "SHUTTLE_DB_HOST" environment variable to connect to the right IP address:
+  Then modify the "SHUTTLE_DB_HOST" environment variable to connect to the right IP address. For example, open "shuttle_three_days.ipynb" and input the above IP Address for SHUTTLE_DB_HOST:
   
   ```
   os.environ['SHUTTLE_DB_USER'] = "postgres"
   os.environ['SHUTTLE_DB_PASSWORD'] =''
   os.environ['SHUTTLE_DB_HOST'] = "172.17.0.3"
   ```
+  
+  Now verify database connection by going to the Cell menu and selecting "Run All". You should see:
+
+  ```
+  conn = sfmta.db_connect()
+  Connection Created
+  ```
+  
+  At this point, you are ready to perform queries on the shuttle database!
+  
   
 * Stop the container
   To stop the shuttlenb container, simply ^C out.
