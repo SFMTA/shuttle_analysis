@@ -20,7 +20,7 @@ This describes the steps to getting a docker image built and run that contains a
   <SNIP>
   Removing intermediate container 3cea1173913d
   Successfully built dc4e6307c61f
-  Successfully tagged shuttledb:latest
+  Successfully tagged shuttlenb:latest
   ```
 
 * Run container
