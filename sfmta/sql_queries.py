@@ -14,7 +14,12 @@ def db_connect():
     except KeyError:
         password = input('DB Password: ').strip()
 
-    conn = psycopg2.connect(host='localhost', 
+    try:
+        hostname = os.environ['SHUTTLE_DB_HOST']
+    except KeyError:
+        hostname = input('DB Host: ').strip()
+
+    conn = psycopg2.connect(host=hostname, 
                             user=username, 
                             password=password, 
                             database='shuttle_database')
