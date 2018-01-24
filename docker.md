@@ -57,8 +57,13 @@ This describes the steps to getting a docker image built and run that contains a
                     "IPAddress": "172.17.0.3",
   ```   
   
-  * TODO: how to input the correct IP Address
-  * TODO: make this easier
+  Then modify the "SHUTTLE_DB_HOST" environment variable to connect to the right IP address:
+  
+  ```
+  os.environ['SHUTTLE_DB_USER'] = "postgres"
+  os.environ['SHUTTLE_DB_PASSWORD'] =''
+  os.environ['SHUTTLE_DB_HOST'] = "172.17.0.3"
+  ```
   
 * Stop the container
   To stop the shuttlenb container, simply ^C out.
