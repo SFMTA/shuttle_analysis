@@ -44,9 +44,9 @@ This describes the steps to getting a docker image built and run that contains a
          http://localhost:8888/?token=87b8ed25bf9985a8d94200bf9363fa6cf1165125c6fbfabb
   ```
   
-* Open the Jupyter notebook by going to the above URL.
+* Open the Jupyter notebook by going to the above localhost URL.
 
-* Get IP address of where the Postgres Database resides and update Jupyter notebook to connect to this IP Address
+* Get IP address of where the Postgres Database resides and update Jupyter notebook to point to this IP Address
 
   > Note: if the shuttle database and the shuttlenb (Jupyter notebook container) are on the same host, 'localhost' will not work. Use 'docker inspect' to determine the correct IP Address to use.
   
