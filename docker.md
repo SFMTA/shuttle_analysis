@@ -25,24 +25,36 @@ This describes the steps to getting a docker image built and run that contains a
 
 * Run container
 
-  ```
-  C02RP8FEG8WP:shuttle_db aleung181$ ./docker-run.sh
-  1330b510e009fb47e3d32f4bd87b05a67e2f629958607cfdb475c079e6bf3447
+ ```
+ C02RP8FEG8WP:shuttle_analysis aleung181$ ./docker-run.sh 
+Executing the command: jupyter notebook
+[I 00:08:49.347 NotebookApp] Writing notebook server cookie secret to /home/jovyan/.local/share/jupyter/runtime/notebook_cookie_secret
+[W 00:08:49.755 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
+[I 00:08:49.788 NotebookApp] JupyterLab alpha preview extension loaded from /opt/conda/lib/python3.6/site-packages/jupyterlab
+[I 00:08:49.788 NotebookApp] JupyterLab application directory is /opt/conda/share/jupyter/lab
+[I 00:08:49.795 NotebookApp] Serving notebooks from local directory: /home/jovyan
+[I 00:08:49.795 NotebookApp] 0 active kernels
+[I 00:08:49.796 NotebookApp] The Jupyter Notebook is running at:
+[I 00:08:49.796 NotebookApp] http://[all ip addresses on your system]:8888/?token=87b8ed25bf9985a8d94200bf9363fa6cf1165125c6fbfabb
+[I 00:08:49.796 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 00:08:49.797 NotebookApp] 
+    
+    Copy/paste this URL into your browser when you connect for the first time,
+    to login with a token:
+        http://localhost:8888/?token=87b8ed25bf9985a8d94200bf9363fa6cf1165125c6fbfabb
   ```
   
-* Get IP address of where the Postgres Database resides and update Jupyter notebook to this location
+* Get IP address of where the Postgres Database resides and update Jupyter notebook to connect to this IP Address
 
-  TODO
-  
-* Verify that it's running
-
-  ```
+  > Note: if the shuttle database and the shuttlenb (Jupyter notebook container) are on the same host, 'localhost' will not work. Use 'docker inspect' to determine the IP Address
   
   ```
+  C02RP8FEG8WP:shuttle_analysis aleung181$ docker inspect a5fc45998bf3 | grep IPAddress
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.3",
+                    "IPAddress": "172.17.0.3",
+  ```                  
   
-  > note that '1330b510e009" is the container id that can be used later to 'docker exec' commands or stop the container
-
-   
 * Stop the container
   To stop the shuttlenb container, simply ^C out.
   
