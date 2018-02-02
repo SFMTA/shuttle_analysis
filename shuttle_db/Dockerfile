@@ -4,15 +4,10 @@ FROM timescale/timescaledb-postgis
 #WORKDIR /app
 
 # add requirements.txt for pip install
-ADD pg_cron pg_cron
-
-# add requirements.txt for pip install
 ADD requirements.txt .
 
 
-
 # Set the database environment var
-#ENV PGDATABASE shuttle_database
 
 ADD ./requirements.txt .
 # add python3
@@ -39,23 +34,10 @@ ADD ./code/populate.py .
 # scripts in the docker-entrypoint-initdb.d/ directory will
 # be run in alphabetical order
 # will create tables upon container start up
-#ADD timescale-mta.sql /docker-entrypoint-initdb.d/a_timescale-mta.sql
-ADD z_pg_cron.sql .
-
-#RUN git clone https://github.com/citusdata/pg_cron.git && \
-#    	cd pg_cron && \
-#	export PATH=/usr/pgsql-10/bin:$PATH && \
-#	make && sudo PATH=$PATH make install
-
-RUN cd pg_cron && \
-	make && sudo make install
 
 # Copy the current directory contents into the container at /app
 ADD ./code/ .
 
-# scripts in the docker-entrypoint-initdb.d/ directory will
-# be run in alphabetical order
-# will create tables upon container start up
 ADD a_timescale-mta.sql /docker-entrypoint-initdb.d/
 ADD populate.sh /docker-entrypoint-initdb.d/
 # Expose the PostgreSQL port

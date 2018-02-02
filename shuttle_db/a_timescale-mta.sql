@@ -4,7 +4,6 @@ SELECT current_database();
 SELECT current_database();
 CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-/*CREATE EXTENSION IF NOT EXISTS pg_cron CASCADE;*/
 
 
 DROP TABLE IF EXISTS providers CASCADE;
@@ -103,13 +102,6 @@ CREATE TABLE IF NOT EXISTS day_info_dim (
     transit_holiday VARCHAR(20),
     weekday VARCHAR(20)
 );
-
-
-
-
-
-
-
 
 CREATE TABLE IF NOT EXISTS shuttle_locations (
     shuttle_id INTEGER REFERENCES shuttles (id),

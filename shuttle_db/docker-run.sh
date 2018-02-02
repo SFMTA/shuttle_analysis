@@ -25,7 +25,7 @@ docker run -d \
   $IMAGE_NAME \
   -clog_line_prefix="%m [%p]: [%l-1] %u@%d" \
   -clog_error_verbosity=VERBOSE \
-  -cshared_preload_libraries='timescaledb,pg_cron' \
+  -cshared_preload_libraries='timescaledb' \
   -ccron.database_name='shuttle_database'
 
 set +e
