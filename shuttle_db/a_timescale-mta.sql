@@ -103,16 +103,3 @@ CREATE TABLE IF NOT EXISTS day_info_dim (
     weekday VARCHAR(20)
 );
 
-CREATE TABLE IF NOT EXISTS shuttle_locations (
-    shuttle_id INTEGER REFERENCES shuttles (id),
-    tech_provider_id INTEGER REFERENCES providers (id),
-    shuttle_company_id INTEGER REFERENCES shuttle_companies (id),
-    local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    location POINT,
-    cnn INTEGER REFERENCES cnn (cnn)
-);
-
-SELECT * FROM shuttle_locations
-WHERE shuttle_id=1 AND local_timestamp > '2017-09-20 19:40:09' AND local_timestamp < '2017-09-20 19:41:51'
-ORDER BY local_timestamp;
-
