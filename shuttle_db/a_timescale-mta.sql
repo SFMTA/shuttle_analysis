@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS shuttle_locations (
     cnn INTEGER REFERENCES cnn (cnn)
 );
 
+SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
+
 
 DROP TABLE IF EXISTS shuttle_summary_facts CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_summary_facts (
@@ -77,16 +79,8 @@ CREATE TABLE IF NOT EXISTS shuttle_summary_facts (
     num_points INTEGER
 );
 
-SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
 
-SELECT shuttle_id, cnn, COUNT(*)
-OVER (
- PARTITION BY shuttle_id
- ORDER BY shuttle_locations.local_timestamp
-)
-FROM shuttle_locations
-WHERE local_timestamp < TIMESTAMP '2017/12/05 10:00:00';
-
+SELECT CREATE_HYPERTABLE('shuttle_summary_facts', 'start_time', 'shuttle_id', 2, create_default_indexes=>FALSE);
 
 DROP TABLE IF EXISTS shuttle_stop_dim CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_stop_dim (
