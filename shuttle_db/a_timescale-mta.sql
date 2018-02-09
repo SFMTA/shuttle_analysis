@@ -4,7 +4,6 @@ SELECT current_database();
 SELECT current_database();
 CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-/*CREATE EXTENSION IF NOT EXISTS pg_cron CASCADE;*/
 
 
 DROP TABLE IF EXISTS providers CASCADE;
@@ -55,6 +54,8 @@ CREATE TABLE IF NOT EXISTS "cnn" (
   geom GEOMETRY(LINESTRING)
 );
 
+
+
 DROP TABLE IF EXISTS shuttle_locations CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_locations (
     shuttle_id INTEGER REFERENCES shuttles (id),
@@ -65,28 +66,21 @@ CREATE TABLE IF NOT EXISTS shuttle_locations (
     cnn INTEGER REFERENCES cnn (cnn)
 );
 
+SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
+
 
 DROP TABLE IF EXISTS shuttle_summary_facts CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_summary_facts (
     cnn_event_id INTEGER,
     shuttle_id VARCHAR(20),
-    local_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     cnn INTEGER,
-    starttime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    endtime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    start_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     num_points INTEGER
 );
 
-SELECT CREATE_HYPERTABLE('shuttle_locations', 'local_timestamp', 'shuttle_id', 2, create_default_indexes=>FALSE);
 
-SELECT shuttle_id, cnn, COUNT(*)
-OVER (
- PARTITION BY shuttle_id
- ORDER BY shuttle_locations.local_timestamp
-)
-FROM shuttle_locations
-WHERE local_timestamp < TIMESTAMP '2017/12/05 10:00:00';
-
+SELECT CREATE_HYPERTABLE('shuttle_summary_facts', 'start_time', 'shuttle_id', 2, create_default_indexes=>FALSE);
 
 DROP TABLE IF EXISTS shuttle_stop_dim CASCADE;
 CREATE TABLE IF NOT EXISTS shuttle_stop_dim (
@@ -102,3 +96,4 @@ CREATE TABLE IF NOT EXISTS day_info_dim (
     transit_holiday VARCHAR(20),
     weekday VARCHAR(20)
 );
+

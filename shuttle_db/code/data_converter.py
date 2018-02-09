@@ -3,8 +3,8 @@ import pandas
 
 def convert_raw_to_usable():
     print("reading")
-    df = pandas.read_csv('./data_raw/sample_telemetry_fact.csv', sep='\t')
-    cnn_df = pandas.read_csv('./data_raw/SF_CNNS_DIM_20171107.csv', sep='\t')
+    df = pandas.read_csv('./data_raw/shuttle_three_days.csv', sep='\t')
+    cnn_df = pandas.read_csv('./data_raw/cnn_dim.csv', sep='\t')
     facts_df = df[['LICENSE_PLATE_NUM','TIMESTAMPLOCAL','LOCATION_LATITUDE','LOCATION_LONGITUDE']]
 
     facts_df['POINT'] = create_point(df)

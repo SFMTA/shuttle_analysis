@@ -1,3 +1,5 @@
+shuttle_db/.ipynb_checkpoints/
+shuttle_db/data
 shuttle_db/data_raw
 .idea
 __pycache__
