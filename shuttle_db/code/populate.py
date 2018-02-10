@@ -258,6 +258,7 @@ def initialize_shuttles(connection):
 
 
 def get_all_new_tech_providers(dict_reader):
+    print("keys : {}".format(dict_reader.fieldnames))
     seen_names = set()
     providers = []
     for row in dict_reader:

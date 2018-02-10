@@ -3,7 +3,7 @@ import psycopg2
 import pandas as pd
 from ipywidgets import Dropdown
 
-def db_connect():
+def db_connect(url):
     try:
         username = os.environ['SHUTTLE_DB_USER']
     except KeyError:
@@ -14,7 +14,7 @@ def db_connect():
     except KeyError:
         password = input('DB Password: ').strip()
 
-    conn = psycopg2.connect(host='localhost', 
+    conn = psycopg2.connect(host=url, 
                             user=username, 
                             password=password, 
                             database='shuttle_database')
