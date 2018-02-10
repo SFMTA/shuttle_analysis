@@ -2,6 +2,7 @@ import argparse
 import csv
 import psycopg2
 import os
+import re
 import time
 
 saved_cnns = set()
@@ -9,12 +10,16 @@ company_ids_by_name = {}
 provider_ids_by_name = {}
 shuttle_ids_by_plate = {}
 
+_CLEAN_NAME_REGEX = re.compile(r'[^a-zA-Z0-9 ]')
 
 def _unicode_method(self):
     return "{}({})".format(
         self.__class__.__name__,
         ",".join("{}={}".format(k, v) for k, v in self.__dict__.items()))
 
+
+def _clean_name(name):
+    return _CLEAN_NAME_REGEX.sub('', name)
 
 def gen_chunks(csv_reader, chunk_size=100):
     chunk = []
@@ -257,6 +262,7 @@ def get_all_new_tech_providers(dict_reader):
     providers = []
     for row in dict_reader:
         provider_name = row['TECH_PROVIDER_NAME']
+        provider_name = _clean_name(provider_name)
         if provider_name not in provider_ids_by_name and provider_name not in seen_names:
             provider = TechProvider(id=None, name=provider_name)
             providers.append(provider)
@@ -270,6 +276,7 @@ def get_all_new_shuttle_companies(dict_reader):
     companies = []
     for row in dict_reader:
         company_name = row['SHUTTLE_COMPANY']
+        company_name = _clean_name(company_name)
         if company_name not in company_ids_by_name and company_name not in seen_names:
             company = ShuttleCompany(id=None, name=company_name)
             companies.append(company)
@@ -283,6 +290,7 @@ def get_all_new_shuttles(dict_reader):
     shuttles = []
     for row in dict_reader:
         plate = row['LICENSE_PLATE_NUM']
+        plate = _clean_name(plate)
         if plate not in shuttle_ids_by_plate and plate not in seen_plates:
             shuttle = Shuttle(
                 vehicle_make=row['VEHICLE_MAKE'],
@@ -423,13 +431,13 @@ if __name__ == '__main__':
     #    username = os.environ['SHUTTLE_DB_USER']
     #except KeyError:
     #    username = input('DB Username: ').strip()
-    username = "postgres"
+    username = os.environ.get('SHUTTLE_DB_USER')
 
     #try:
     #    password = os.environ['SHUTTLE_DB_PASSWORD']
     #except KeyError:
     #    password = input('DB Password: ').strip()
-    password=""
+    password=os.environ.get('SHUTTLE_DB_PASSWORD')
     #conn = psycopg2.connect(host='localhost', user=username, password=password,
     conn = psycopg2.connect(host=args.ip, user=username, password=password,
                             database='shuttle_database')
